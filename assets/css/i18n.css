@@ -1,0 +1,173 @@
+/**
+ * i18n Styling for RTL/LTR Support
+ */
+
+/* Default LTR Styles */
+body.ltr {
+  direction: ltr;
+  text-align: left;
+}
+
+body.ltr .navbar {
+  flex-direction: row;
+}
+
+body.ltr .navbar-nav {
+  margin-left: auto;
+}
+
+/* RTL Styles for Arabic */
+body.rtl {
+  direction: rtl;
+  text-align: right;
+  font-family: 'Inter Tight', 'Arial', sans-serif;
+}
+
+body.rtl .navbar {
+  flex-direction: row-reverse;
+}
+
+body.rtl .navbar-nav {
+  margin-right: auto;
+  margin-left: 0;
+}
+
+body.rtl .navbar-brand {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+body.rtl .icons-menu {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+body.rtl .nav-dropdown {
+  text-align: right;
+}
+
+body.rtl .dropdown-menu {
+  right: 0;
+  left: auto;
+  text-align: right;
+}
+
+body.rtl .content-wrapper {
+  text-align: right;
+}
+
+body.rtl .footer01 {
+  text-align: right;
+}
+
+body.rtl .list {
+  text-align: right;
+}
+
+body.rtl .item-wrap {
+  text-align: right;
+}
+
+body.rtl .title-wrap {
+  text-align: right;
+  flex-direction: row-reverse;
+}
+
+body.rtl .title-wrap .mbr-iconfont {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+
+body.rtl .mbr-iconfont::before {
+  margin-right: 0.5rem;
+}
+
+/* Language toggle button styling */
+.lang-toggle {
+  padding: 0.5rem 1rem;
+  background-color: #0069ff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+  margin: 0 0.5rem;
+}
+
+.lang-toggle:hover {
+  background-color: #0051cc;
+}
+
+.lang-toggle.active {
+  background-color: #003d99;
+}
+
+/* Country toggle buttons */
+.country-toggle {
+  padding: 0.5rem 0.75rem;
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  margin: 0.25rem;
+}
+
+.country-toggle:hover {
+  background-color: #e0e0e0;
+}
+
+.country-toggle.active {
+  background-color: #0069ff;
+  color: white;
+  border-color: #0069ff;
+}
+
+/* Geo-location content styling */
+[data-geo] {
+  transition: opacity 0.3s ease;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  body.rtl .navbar {
+    flex-direction: column;
+  }
+
+  body.rtl .navbar-nav {
+    margin-right: 0;
+  }
+
+  .lang-toggle {
+    display: inline-block;
+    margin: 0.25rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.875rem;
+  }
+
+  .country-toggle {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.6rem;
+  }
+}
+
+/* Animation for content updates */
+@keyframes fadeInOut {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+body.updating [data-i18n],
+body.updating [data-geo] {
+  animation: fadeInOut 0.3s ease;
+}

@@ -1,6 +1,91 @@
+// Updated Service Worker with cache busting and network-first strategy
 
-var staticCaches=["mobirise-cache-v1"];function inArray(a,c){return 0<a.filter(function(b){return b===c}).length?!0:!1}self.addEventListener("install",function(a){console.log("SW: Installed and updated");self.skipWaiting()});
-self.addEventListener("activate",function(a){console.log("SW: Activate");a.waitUntil(caches.keys().then(function(a){return Promise.all(a.map(function(b){if(!inArray(staticCaches,b))return caches.delete(b)}))}).then(function(){console.log("SW: First time caching ...");return caches.open(staticCaches).then(function(a){return fetch("/sw-resources.json").then(function(a){return a.json()}).then(function(b){b=b.reduce(function(a,b){/(?:json|html|mobirise)/i.test(b.split(".").pop())||a.push(b);return a},
-["/","manifest.json"]);return Promise.all(b.map(function(b){return fetch(b,{mode:"no-cors"}).then(function(d){return a.put(b,d)})}))})}).catch(function(a){console.error(a)})}))});
-self.addEventListener("fetch",function(a){"http"===a.request.url.slice(0,4)&&a.respondWith(fetch(a.request).then(function(c){if(404==c.status)return new Response("Page not found!");var b=c.clone();caches.open(staticCaches).then(function(c){0===a.request.url.indexOf("http")&&c.matchAll(a.request,{ignoreSearch:!0}).then(function(a){return Promise.all(a.map(function(a){return c.delete(a)}))}).then(function(){c.put(a.request,b)})});return c}).catch(function(c){console.log("Offline mode.");return caches.match(a.request).then(function(a){return a?
-a:!1})}))});
+const CACHE_VERSION = 'secdelta-cache-v3';
+const STATIC_ASSETS = [
+  '/',
+  '/index.html',
+  '/assets/js/i18n-config.js',
+  '/assets/css/i18n.css',
+  '/assets/data/translations.json',
+  '/assets/data/geo-content.json',
+  '/manifest.json'
+];
+
+// Install event - cache static assets
+self.addEventListener('install', function(event) {
+  console.log('[SW] Installing Service Worker v3...');
+  event.waitUntil(
+    caches.open(CACHE_VERSION).then(function(cache) {
+      console.log('[SW] Caching static assets');
+      return cache.addAll(STATIC_ASSETS).catch(function(error) {
+        console.warn('[SW] Some assets failed to cache:', error);
+      });
+    })
+  );
+  self.skipWaiting();
+});
+
+// Activate event - clean up old caches
+self.addEventListener('activate', function(event) {
+  console.log('[SW] Activating Service Worker');
+  event.waitUntil(
+    caches.keys().then(function(cacheNames) {
+      return Promise.all(
+        cacheNames.map(function(cacheName) {
+          if (cacheName !== CACHE_VERSION && cacheName.startsWith('secdelta-cache')) {
+            console.log('[SW] Deleting old cache:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+  self.clients.claim();
+});
+
+// Fetch event - Network first, fallback to cache
+self.addEventListener('fetch', function(event) {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Skip non-GET requests
+  if (request.method !== 'GET') {
+    return;
+  }
+
+  // Skip external domains
+  if (url.origin !== location.origin) {
+    return;
+  }
+
+  // Strategy: Network first, fallback to cache
+  event.respondWith(
+    fetch(request)
+      .then(function(response) {
+        // Don't cache error responses
+        if (!response || response.status !== 200 || response.type !== 'basic') {
+          return response;
+        }
+
+        // Cache successful responses
+        const responseToCache = response.clone();
+        caches.open(CACHE_VERSION).then(function(cache) {
+          cache.put(request, responseToCache);
+        });
+
+        return response;
+      })
+      .catch(function() {
+        // Fallback to cache
+        return caches.match(request).then(function(response) {
+          if (response) {
+            return response;
+          }
+          // Return offline page if available
+          if (request.destination === 'document') {
+            return caches.match('/');
+          }
+        });
+      })
+  );
+});
